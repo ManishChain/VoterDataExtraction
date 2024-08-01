@@ -1,0 +1,60 @@
+/Library/Java/JavaVirtualMachines/jdk-15.0.2.jdk/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA CE.app/Contents/lib/idea_rt.jar=57173:/Applications/IntelliJ IDEA CE.app/Contents/bin -Dfile.encoding=UTF-8 -classpath /Users/manish/Desktop/MANACLE/DEV/VoterDataManager/target/classes org.manacle.VoterDataExtraction
+>> 758 4 NLN2567063Name : YASHVARDHAN SINGHFathers Name: BHUSHAN KUMAR SINHAHouse Number : B-12, GROUND FLOOR PhotoAge : 24 Gender : Male Available
+761 4 NWD5703038Name : VIKAS JAINOthers: SHILP! JAINHouse Number : 8-8 PhotoAge : 52 Gender : Male Available
+764 4 XPD4269072Name : ABHISHEK SHARMAFathers Name: ANIL SHARMAHouse Number :B - 4, PhotoAge : 46 Gender : Male Available
+767 4 NWD5725056Name : GIRISH CHHABRAFathers Name: KRISHAN LAL CHHABRAHouse Number : 8-15 FIRST FLOOR PhotoAge : 62 Gender : Male Available
+770) | 3 NWD5730320Name : PAWAN SINGHFathers Name: UMED SINGHHouse Number : C-3, rang road PhotoAge : 29 Gender : Male Available
+773 1 NWD5765359Name : Arnab ChakrabortyMothers Name: Bratati ChakrabortyHouse Number : E 13, First Floor PhotoAge : 28 Gender : Male Available
+
+Got persons 7
+Person{name='YASHVARDHAN SINGH, father='BHUSHAN KUMAR SINHA, house='B-12, GROUND FLOOR PHOTO, age='24, voterID='NLN2567063, serialNumber='758, serialExtension='4
+------------------
+Person{name='VIKAS JAIN, other='SHILP! JAIN, house='8-8 PHOTO, age='52, voterID='NWD5703038
+------------------
+Person{name='ABHISHEK SHARMA, father='ANIL SHARMA, house='B - 4, PHOTO, age='46, voterID='XPD4269072
+------------------
+Person{name='GIRISH CHHABRA, father='KRISHAN LAL CHHABRA, house='8-15 FIRST FLOOR PHOTO, age='62, voterID='NWD5725056
+------------------
+Person{name='PAWAN SINGH, father='UMED SINGH, house='C-3, RANG ROAD PHOTO, age='29, voterID='NWD5730320
+------------------
+Person{name='ARNAB CHAKRABORTY, mother='BRATATI CHAKRABORTY, house='E 13, FIRST FLOOR PHOTO, age='28, voterID='NWD5765359
+------------------
+Ignoring:  AVAILABLE
+Person{
+------------------
+>> 759 4 NLN1938339Name ! ARTI SINGHHusbands Name: BHUSHAN KUMARSINHA PhotoHouse Number : B-12, GROUND FLOOR AvailableAge :51 Gender : Female762] | 4 NWD5709605Name : Bhavini AgrawalFathers Name: ShalabhHouse Number : B-13 PhotoAge : 21 Gender : Female Available765 4 NWD5725031Name : JAGDEEP CHHABRAFathers Name: KRISHAN LAL CHHABRAHouse Number : B-15 FIRST FLOOR PhotoAge : 69 Gender : Male Available768 4 NWD5725072Name : SHA CHHABRAHusbands Name: GIRISH CHHABRAHouse Number : B-15 FIRST FLOOR PhotoAge : 59 Gender : Female Available771 4 ARE0S05529Name : NIKITA TULSIANFathers Name: SURESH TULSIANHouse Number : B-12/2, 1 Floor, PhotoAge : 50 Gender : Female Available774) | 4 NWD5764899Name : diya sachdevFathers Name: karan sachdevHouse Number + B-14 PhotoAge : 27 Gender : Female Available
+Got persons 7
+Person{name='NAME ! ARTI SINGH, husband='BHUSHAN KUMARSINHA PHOTO, house='B-12, GROUND FLOOR AVAILABLE, age='51, voterID='NLN1938339, serialNumber='759, serialExtension='4
+------------------
+Person{name='BHAVINI AGRAWAL, father='SHALABH, house='B-13 PHOTO, age='21, voterID='NWD5709605
+------------------
+Person{name='JAGDEEP CHHABRA, father='KRISHAN LAL CHHABRA, house='B-15 FIRST FLOOR PHOTO, age='69, voterID='NWD5725031
+------------------
+Person{name='SHA CHHABRA, husband='GIRISH CHHABRA, house='B-15 FIRST FLOOR PHOTO, age='59, voterID='NWD5725072
+------------------
+Person{name='NIKITA TULSIAN, father='SURESH TULSIAN, house='B-12/2, 1 FLOOR, PHOTO, age='50, voterID='ARE0S05529
+------------------
+Person{name='DIYA SACHDEV, father='KARAN SACHDEV, house='HOUSE NUMBER + B-14 PHOTO, age='27, voterID='NWD5764899
+------------------
+Ignoring:  AVAILABLE
+Person{
+------------------
+>> 757 4 NLN2567105Name : RAJVARDHAN SINGHFathers Name: BHUSHAN KUMAR SINHA Pho!House Number : B-12, GROUND FLOOR votoAge : 22 Gender : Male Available760 4 NLN1938355Name ? BHUSHAN KUMAR SINHAFathers Name: RAJ NARAIN SINHAHouse Number : 8-12 G.F PhotoAge : 59 Gender : Male Available763 3 ARE2069093Name : Meenu MittalHusbands Name: SANJAY MITTALHouse Number : C -13 GROUND FLOOR PhatoAge : 48 Gender : Female Available766 4 NWD5725049Name : NEETA CHHABRAHusbands Name: JAGDEEP CHHABRA PhHouse Number : B-15 FIRST FLOOR otoAge : 46 Gender : Female Available769 3 ARE2069085Name : Sanjay MittalFathers Name: BHUSHAN LAL MITTALHouse Number : C 13 GROUND FLOOR PhotoAge : 56 Gender : Male Available772) | 2 NW0D5744008Name : rajkumar mahajanFathers Name: surinder kumar mahajanHouse Number : d-4 kainidi colony PhotoAge : 40 Gender : Male Available
+Got persons 7
+Person{name='RAJVARDHAN SINGH, father='BHUSHAN KUMAR SINHA PHO!, house='B-12, GROUND FLOOR VOTO, age='22, voterID='NLN2567105, serialNumber='757, serialExtension='4
+------------------
+Person{name='NAME ? BHUSHAN KUMAR SINHA, father='RAJ NARAIN SINHA, house='8-12 G.F PHOTO, age='59, voterID='NLN1938355
+------------------
+Person{name='MEENU MITTAL, husband='SANJAY MITTAL, house='C -13 GROUND FLOOR PHATO, age='48, voterID='ARE2069093
+------------------
+Person{name='NEETA CHHABRA, husband='JAGDEEP CHHABRA PH, house='B-15 FIRST FLOOR OTO, age='46, voterID='NWD5725049
+------------------
+Person{name='SANJAY MITTAL, father='BHUSHAN LAL MITTAL, house='C 13 GROUND FLOOR PHOTO, age='56, voterID='ARE2069085
+------------------
+Person{name='RAJKUMAR MAHAJAN, father='SURINDER KUMAR MAHAJAN, house='D-4 KAINIDI COLONY PHOTO, age='40, voterID='NW0D5744008
+------------------
+Ignoring:  AVAILABLE
+Person{
+------------------
+
+Process finished with exit code 0
