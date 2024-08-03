@@ -1,7 +1,5 @@
 package org.manacle;
 
-import java.util.Arrays;
-
 public class Person {
 
   private final String imageName;
@@ -146,6 +144,10 @@ public class Person {
     return str.replaceAll("[^a-z.A-Z]", "").trim();
   }
 
+  private String onlyAlphabetsWithSpaces(String str) {
+    return str.replaceAll("[^a-z.A-Z ]", "").trim();
+  }
+
   String onlyAlphanumeric(String str) {
     return str.replaceAll("[^a-z.A-Z0-9]", "").trim();
   }
@@ -176,12 +178,12 @@ public class Person {
   public String toString() {
     return "\"" + (constituency != null ? constituency : "") + "\"," +
       "\"" + (ward > 0 ? ward : "") + "\"," +
-      "\"" + (imageName != null ? imageName : "") + "\"," +
-      "\"" + (name != null ? onlyAlphabets(name) : "") + "\"," +
-      "\"" + (father != null ? onlyAlphabets(father) : "") + "\"," +
-      "\"" + (mother != null ? onlyAlphabets(mother) : "") + "\"," +
-      "\"" + (other != null ? onlyAlphabets(other) : "") + "\"," +
-      "\"" + (husband != null ? onlyAlphabets(husband) : "") + "\"," +
+      "\"" + (imageName != null ? imageName.replace(Constants.IMAGE_FOLDER_PATH,"") : "") + "\"," +
+      "\"" + (name != null ? onlyAlphabetsWithSpaces(name) : "") + "\"," +
+      "\"" + (father != null ? onlyAlphabetsWithSpaces(father) : "") + "\"," +
+      "\"" + (mother != null ? onlyAlphabetsWithSpaces(mother) : "") + "\"," +
+      "\"" + (other != null ? onlyAlphabetsWithSpaces(other) : "") + "\"," +
+      "\"" + (husband != null ? onlyAlphabetsWithSpaces(husband) : "") + "\"," +
       "\"" + (house != null ? house : "") + "\"," +
       "\"" + (age > 0 ? age : "") + "\"," +
       "\"" + (Constants.USE_ENHANCED_LOGIC?getGenderLabel():getGender()) + "\"," +

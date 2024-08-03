@@ -4,7 +4,7 @@ import java.io.File;
 
 public class Constants {
 
-  public static final boolean GENERATE = false;
+  public static final boolean GENERATE = true;
 
   public static final boolean USE_ENHANCED_LOGIC = true;
 
@@ -13,8 +13,10 @@ public class Constants {
 
   private static final String BASE = "/Users/manish/Desktop/election" ;
   public static final String DATA_FOLDER_PATH = BASE + File.separator + CONSTITUENCY_WARD;
-  public static final String OUTPUT_FOLDER_PATH = BASE + File.separator + "output" ;
-  public static final String CSV_FOLDER_PATH = BASE + File.separator + "csv" ;
+  private static final String GENERATED = "generated" ;
+  public static final String IMAGE_FOLDER_PATH = BASE + File.separator + GENERATED + File.separator + "images";
+  public static final String OUTPUT_FOLDER_PATH = BASE + File.separator + GENERATED + File.separator + "output" ;
+  public static final String CSV_FOLDER_PATH = BASE + File.separator + GENERATED + File.separator + "csv" ;
 
   public static final String fieldName = "NAME";
   public static final String fieldFather = "FATHER";

@@ -1,10 +1,12 @@
 package org.manacle;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.util.*;
+import org.apache.commons.io.FileUtils;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public class VoterDataExtraction {
 
@@ -13,6 +15,13 @@ public class VoterDataExtraction {
     if(!dataFolder.exists()) {
       Communicator.showError("Data file not found .... " + dataFolder + " in folder: " + new File(".").getAbsolutePath() );
       System.exit(0);
+    }
+    File imageFolder = new File(Constants.IMAGE_FOLDER_PATH);
+    if(!imageFolder.exists()) {
+      if(!imageFolder.mkdirs()){
+        Communicator.showError("Image folder not found or created .... " + imageFolder.getAbsolutePath() );
+        System.exit(0);
+      }
     }
     File outputFolder = new File(Constants.OUTPUT_FOLDER_PATH);
     if(!outputFolder.exists()) {
@@ -31,29 +40,31 @@ public class VoterDataExtraction {
     System.out.println("---------------");
     System.out.println("Program starting ... ");
     VoterDataExtraction voterDataExtraction = new VoterDataExtraction();
-    // Communicator.showNotice("Starting processing with folder ...\n" + folder.getAbsolutePath());
-    List<ImageInfo> allImagesInfo = new VoterDataExtraction().getImagesInDataFolder(dataFolder);
+    List<String> allImagesInfo = new VoterDataExtraction().moveAllImagesFromDataFolderIntoImageFolder(dataFolder);
+
     if(Constants.GENERATE) {
-      for (ImageInfo imageInfo : allImagesInfo) {
+      for (String imageInfo : allImagesInfo) {
         voterDataExtraction.generateTextFileByScanningImage(imageInfo);
+        System.out.println("TEXT GENERATION DONE: " + imageInfo);
       }
     } else {
       System.err.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE\n\n");
     }
+
     // process extracted data
     List<Person> allPersons = new ArrayList<>();
-    for(ImageInfo imageInfo :  allImagesInfo) {
+    for(String imageInfo :  allImagesInfo) {
       //System.out.println(imageInfo);
-      File datafile = new File(imageInfo.getTextFileName(true));
+      File datafile = new File(getOutputTextFileName(imageInfo,true));
       if (datafile.exists()) {
         String data = voterDataExtraction.getData(datafile);
         // System.out.println("---> Processing : " + imageInfo.getPath());
         List<Person> persons;
         if(Constants.USE_ENHANCED_LOGIC) {
           //System.out.println(".........");
-          persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), imageInfo.getFolder(), imageInfo.getName());
+          persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), Constants.CONSTITUENCY_WARD, imageInfo);
         } else {
-          persons = new DataExtractModule().start(data, imageInfo.getFolder());
+          persons = new DataExtractModule().start(data, Constants.CONSTITUENCY_WARD);
         }
         if(persons!=null && !persons.isEmpty()) allPersons.addAll(persons);
       } else {
@@ -88,14 +99,19 @@ public class VoterDataExtraction {
     return null;
   }
 
-  private List<ImageInfo> getImagesInDataFolder(File folder){
-    List<ImageInfo> allImages = new ArrayList<>();
+  private List<String> moveAllImagesFromDataFolderIntoImageFolder(File folder){
+    List<String> allImages = new ArrayList<>();
     for(File file : Objects.requireNonNull(folder.listFiles())) {
       if(file.isDirectory()) { // get images recursively
-        List<ImageInfo> images = getImagesInDataFolder(file);
+        List<String> images = moveAllImagesFromDataFolderIntoImageFolder(file);
         allImages.addAll(images);
       } else {
-        ImageInfo imageInfo = validImage(file);
+        String imageInfo = null;
+        try {
+          imageInfo = validImage(file);
+        } catch (Exception e) {
+          System.err.println("Error in reading Image " + file.getAbsolutePath() + "  >> " + e.getMessage());
+        }
         if(imageInfo!=null){
           allImages.add(imageInfo);
         }
@@ -104,7 +120,9 @@ public class VoterDataExtraction {
     return allImages;
   }
 
-  private ImageInfo validImage(File file) {
+  static int count = 1 ;
+
+  private String validImage(File file) throws IOException {
     String filePath = file.getAbsolutePath();
     String[] array = filePath.split(String.valueOf(File.separator));
     int length = array.length;
@@ -115,14 +133,18 @@ public class VoterDataExtraction {
     String extension = (dotIndex > 0) ? filename.substring(dotIndex + 1) : "";
     filename = filename.substring(0,dotIndex);
     if(extension.equalsIgnoreCase("png")) {
-      return new ImageInfo(folderName, filename, extension, filePath);
+      // copy image into image folder
+      File original = new File(filePath);
+      File copied = new File(Constants.IMAGE_FOLDER_PATH + File.separator + (count++) + ".png");
+      FileUtils.copyFile(original, copied);
+      return copied.getAbsolutePath();
     }
     return null;
   }
 
-  private void generateTextFileByScanningImage(ImageInfo imageInfo){
+  private void generateTextFileByScanningImage(String imageInfo){
     try {
-      String[] command = { "tesseract", imageInfo.getPath(), imageInfo.getTextFileName(false) };
+      String[] command = { "tesseract", imageInfo, getOutputTextFileName(imageInfo, false) };
       Process process = Runtime.getRuntime().exec(command);
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       StringBuilder data = new StringBuilder();
@@ -131,56 +153,22 @@ public class VoterDataExtraction {
         data.append(line);
       }
       reader.close();
-      // System.out.println("Executed command: " + command);
+      // System.out.println("Executed command: " + Arrays.toString(command));
       // System.out.println("Result: " + data.toString());
     } catch (Exception e) {
       System.err.println(e.getMessage());
     }
   }
-}
 
-class ImageInfo {
-  private final String folder;
-  private final String name;
-  private final String extension;
-  private final String path;
-  private String textFileName;
-  ImageInfo(String folder, String name, String extension, String path){
-    this.folder = folder;
-    this.name = name;
-    this.path = path;
-    this.extension =  extension;
-    setTextFileName();
-  }
-  public String getFolder() {
-    return folder;
-  }
-  public String getName() {
-    return name;
-  }
-  public String getPath() {
-    return path;
-  }
-  public String getExtension() {
-    return extension;
-  }
-  public String getTextFileName(boolean forReading) {
-    return textFileName + (forReading?".txt":"") ;
-  }
-  public void setTextFileName() {
-    this.textFileName = Constants.OUTPUT_FOLDER_PATH
-              + File.separator
-              + folder.replaceAll("-","_") + "_" + name;
+  private static String getOutputTextFileName(String imageInfo, boolean forReading) {
+    String name = Constants.OUTPUT_FOLDER_PATH + imageInfo.substring(imageInfo.lastIndexOf(File.separator)).replace(".png","");
+    if(forReading) {
+      return name + ".txt" ;
+    } else {
+      return name;
+    }
   }
 
-  @Override
-  public String toString() {
-    return "ImageInfo{" +
-      "folder='" + folder + '\'' +
-      ", name='" + name + '\'' +
-      ", extension='" + extension + '\'' +
-      ", path='" + path + '\'' +
-      ", textFileName='" + textFileName + '\'' +
-      '}';
-  }
+
 }
+
