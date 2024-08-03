@@ -8,24 +8,23 @@ import java.util.*;
 
 public class VoterDataExtraction {
 
-  public static final String CONSTITUENCY_WARD = "KALKAJI-51";
-
-  public static final String BASE = "/Users/manish/Desktop/election/NIKHIL" ;
-  public static final String dataFolderPath = BASE + File.separator + CONSTITUENCY_WARD;
-  public static final String outputFolderPath = BASE + File.separator + "output" ;
-
-  private static final boolean GENERATE = true;
-
   public static void main(String[] args) {
-    File dataFolder = new File(dataFolderPath);
+    File dataFolder = new File(Constants.DATA_FOLDER_PATH);
     if(!dataFolder.exists()) {
       Communicator.showError("Data file not found .... " + dataFolder + " in folder: " + new File(".").getAbsolutePath() );
       System.exit(0);
     }
-    File outputFolder = new File(outputFolderPath);
+    File outputFolder = new File(Constants.OUTPUT_FOLDER_PATH);
     if(!outputFolder.exists()) {
       if(!outputFolder.mkdirs()){
         Communicator.showError("Output folder not found or created .... " + outputFolder.getAbsolutePath() );
+        System.exit(0);
+      }
+    }
+    File csvFolder = new File(Constants.CSV_FOLDER_PATH);
+    if(!csvFolder.exists()) {
+      if(!csvFolder.mkdirs()){
+        Communicator.showError("CSV folder not found or created .... " + outputFolder.getAbsolutePath() );
         System.exit(0);
       }
     }
@@ -34,12 +33,12 @@ public class VoterDataExtraction {
     VoterDataExtraction voterDataExtraction = new VoterDataExtraction();
     // Communicator.showNotice("Starting processing with folder ...\n" + folder.getAbsolutePath());
     List<ImageInfo> allImagesInfo = new VoterDataExtraction().getImagesInDataFolder(dataFolder);
-    if(GENERATE) {
+    if(Constants.GENERATE) {
       for (ImageInfo imageInfo : allImagesInfo) {
         voterDataExtraction.generateTextFileByScanningImage(imageInfo);
       }
     } else {
-      System.err.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE");
+      System.err.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE\n\n");
     }
     // process extracted data
     List<Person> allPersons = new ArrayList<>();
@@ -48,18 +47,26 @@ public class VoterDataExtraction {
       File datafile = new File(imageInfo.getTextFileName(true));
       if (datafile.exists()) {
         String data = voterDataExtraction.getData(datafile);
-        System.out.println("---> Processing : " + imageInfo.getPath());
-        List<Person> persons = new DataExtractModule().start(data, imageInfo.getFolder());
-        if(!persons.isEmpty()) allPersons.addAll(persons);
+        // System.out.println("---> Processing : " + imageInfo.getPath());
+        List<Person> persons;
+        if(Constants.USE_ENHANCED_LOGIC) {
+          //System.out.println(".........");
+          persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), imageInfo.getFolder(), imageInfo.getName());
+        } else {
+          persons = new DataExtractModule().start(data, imageInfo.getFolder());
+        }
+        if(persons!=null && !persons.isEmpty()) allPersons.addAll(persons);
       } else {
         System.err.println("File not exists " + datafile.getAbsolutePath());
       }
     }
     // for all persons create excel sheet
-    System.out.println("---------------");
+    // System.out.println("---------------");
+    System.out.println("\n\nTotal Voters Extracted : " + allPersons.size());
+    // System.out.println(allPersons);
     try {
       new ExcelGenerator().write(allPersons);
-      System.out.println("Program terminated successfully. Please check generated EXCEL sheet");
+      System.out.println("\n\nProgram terminated successfully. Please check generated EXCEL sheet");
     } catch (Exception e) {
       System.err.println("Error " + e.getMessage());
     }
@@ -72,6 +79,7 @@ public class VoterDataExtraction {
       String line;
       while ((line = reader.readLine()) != null) {
         data.append(line);
+        data.append(Constants.DELIMITER);
       }
       return data.toString();
     } catch (Exception e) {
@@ -114,7 +122,7 @@ public class VoterDataExtraction {
 
   private void generateTextFileByScanningImage(ImageInfo imageInfo){
     try {
-      String command = "tesseract " + imageInfo.getPath() +  " " + imageInfo.getTextFileName(false) + " ";
+      String[] command = { "tesseract", imageInfo.getPath(), imageInfo.getTextFileName(false) };
       Process process = Runtime.getRuntime().exec(command);
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       StringBuilder data = new StringBuilder();
@@ -160,7 +168,7 @@ class ImageInfo {
     return textFileName + (forReading?".txt":"") ;
   }
   public void setTextFileName() {
-    this.textFileName = VoterDataExtraction.outputFolderPath
+    this.textFileName = Constants.OUTPUT_FOLDER_PATH
               + File.separator
               + folder.replaceAll("-","_") + "_" + name;
   }

@@ -1,10 +1,10 @@
 package org.manacle;
 
-public class Person {
-  public static final int MALE = 0 ;
-  public static final int FEMALE = 1 ;
-  public static final int OTHERS = 2 ;
+import java.util.Arrays;
 
+public class Person {
+
+  private final String imageName;
   private String name;
   private String father;
   private String mother;
@@ -13,69 +13,87 @@ public class Person {
   private String house;
   private int age;
   private int gender;
+  private String genderLabel;
   private String voterID;
   private int serialNumber;
   private int serialExtension = 0;
   private final String constituency;
   private int ward = 0;
-  private boolean modified = false;
+  private final boolean modified = false;
 
-  public Person(String constituency, int ward) {
+  public Person(String constituency, int ward, String imageName) {
     this.constituency = constituency;
     this.ward = ward;
+    this.imageName = imageName;
   }
 
   public void setName(String name) {
     try { name = name.substring(name.indexOf(":")+1).trim(); } catch (Exception e) {
       System.err.println("No : in name");
     }
-    this.name = name.replaceAll(DataExtractModule.fieldName,  "").trim();
+    this.name = name.replaceAll(Constants.fieldName,  "").trim();
   }
 
   public void setFather(String father) {
     try { father = father.substring(father.indexOf(":")+1).trim(); } catch (Exception e) {
       System.err.println("No : in father");
     }
-    this.father =  father.replaceAll(DataExtractModule.fieldFather,  "").trim();
+    this.father =  father.replaceAll(Constants.fieldFather,  "").trim();
   }
 
   public void setMother(String mother) {
     try { mother = mother.substring(mother.indexOf(":")+1).trim(); } catch (Exception e) {
       System.err.println("No : in mother");
     }
-    this.mother = mother.replaceAll(DataExtractModule.fieldMother,  "").trim();
+    this.mother = mother.replaceAll(Constants.fieldMother,  "").trim();
   }
 
   public void setOther(String other) {
     try { other = other.substring(other.indexOf(":")+1).trim(); } catch (Exception e) {
       System.err.println("No : in other");
     }
-    this.other = other.replaceAll(DataExtractModule.fieldOther,  "").trim();;
+    this.other = other.replaceAll(Constants.fieldOther,  "").trim();;
   }
 
   public void setHusband(String husband) {
     try { husband = husband.substring(husband.indexOf(":")+1).trim(); } catch (Exception e) {
       System.err.println("No : in husband");
     }
-    this.husband = husband.replaceAll(DataExtractModule.fieldHusband,  "").trim();;
+    this.husband = husband.replaceAll(Constants.fieldHusband,  "").trim();;
   }
 
   public void setHouse(String house) {
     try {
       house = house.substring(house.indexOf(":")+1);
-      house = house.replace(DataExtractModule.fieldExtra2, "").trim();
+      house = house.replace(Constants.fieldExtra2, "").trim();
     } catch (Exception e) {
       System.err.println("No : in house");
     }
-    this.house = house.replaceAll(DataExtractModule.fieldHouse,  "").trim();;
+    this.house = house.replaceAll(Constants.fieldHouse,  "").trim();;
   }
 
-  public void setAge(String age) {
+  public void setAge(String str) {
+    // System.out.println(str);
     try {
-      this.age = onlyDigits(age);
+      this.age = onlyDigits(str);
     } catch (Exception e) {
       System.err.println("Error in age " + age + " " + e.getMessage());
     }
+    // might be possible that GENDER info is also inside this
+    if (str.contains(Constants.fieldGender) && getGenderLabel() == null) setGenderLabel(str);
+    if (str.contains(Constants.fieldGender1) && getGenderLabel() == null) setGenderLabel(str);
+  }
+
+  public void setGenderLabel(String str) {
+    int index = str.indexOf(Constants.fieldGender);
+    if(index<0) index = str.indexOf(Constants.fieldGender1);
+    if(index>0) {
+      this.genderLabel = onlyAlphabets(str.substring(index+Constants.fieldGender.length()));
+    }
+  }
+
+  public String getGenderLabel() {
+    return genderLabel;
   }
 
   public void setGender(int gender) {
@@ -84,14 +102,17 @@ public class Person {
 
   public String getGender() {
     return switch (gender) {
-      case MALE -> "MALE";
-      case FEMALE -> "FEMALE";
+      case Constants.MALE -> "MALE";
+      case Constants.FEMALE -> "FEMALE";
       default -> "-";
     };
   }
 
   public void setVoterID(String voterID) {
-    this.voterID = voterID;
+    this.voterID = onlyAlphanumeric(voterID);
+    if(this.voterID.length()!=10) {
+      System.err.println("Invalid VoterID : " + this.voterID);
+    }
   }
 
   public boolean setSerialNumber(String serialNumber) {
@@ -122,24 +143,25 @@ public class Person {
   }
 
   private String onlyAlphabets(String str) {
-    return str.replaceAll("[^a-z.A-Z]", "");
+    return str.replaceAll("[^a-z.A-Z]", "").trim();
   }
 
   String onlyAlphanumeric(String str) {
-    return str.replaceAll("[^a-z.A-Z0-9]", "");
+    return str.replaceAll("[^a-z.A-Z0-9]", "").trim();
   }
 
   String onlyAlphanumericWithSpaces(String str) {
-    return str.replaceAll("[^a-z.A-Z0-9 ]", "");
+    return str.replaceAll("[^a-z.A-Z0-9 ]", "").trim();
   }
 
   public static String getHeader(){
     return "\"" + "CONSTITUENCY" + "\"," +
       "\"" + "WARD" + "\"," +
+      "\"" + "IMAGE" + "\"," +
       "\"" + "NAME" + "\"," +
       "\"" + "FATHER" + "\"," +
       "\"" + "MOTHER" + "\"," +
-      "\"" + "WIFE" + "\"," +
+      "\"" + "OTHER" + "\"," +
       "\"" + "HUSBAND" + "\"," +
       "\"" + "HOUSE" + "\"," +
       "\"" + "AGE" + "\"," +
@@ -154,18 +176,55 @@ public class Person {
   public String toString() {
     return "\"" + (constituency != null ? constituency : "") + "\"," +
       "\"" + (ward > 0 ? ward : "") + "\"," +
-      "\"" + (name != null ? name : "") + "\"," +
-      "\"" + (father != null ? father : "") + "\"," +
-      "\"" + (mother != null ? mother : "") + "\"," +
-      "\"" + (other != null ? other : "") + "\"," +
-      "\"" + (husband != null ? husband : "") + "\"," +
+      "\"" + (imageName != null ? imageName : "") + "\"," +
+      "\"" + (name != null ? onlyAlphabets(name) : "") + "\"," +
+      "\"" + (father != null ? onlyAlphabets(father) : "") + "\"," +
+      "\"" + (mother != null ? onlyAlphabets(mother) : "") + "\"," +
+      "\"" + (other != null ? onlyAlphabets(other) : "") + "\"," +
+      "\"" + (husband != null ? onlyAlphabets(husband) : "") + "\"," +
       "\"" + (house != null ? house : "") + "\"," +
       "\"" + (age > 0 ? age : "") + "\"," +
-      "\"" + getGender() + "\"," +
+      "\"" + (Constants.USE_ENHANCED_LOGIC?getGenderLabel():getGender()) + "\"," +
       "\"" + (voterID != null ? voterID : "") + "\"," +
       "\"" + (serialNumber > 0 ? serialNumber : "") + "\"," +
       "\"" + (serialExtension > 0 ? serialExtension : "") + "\"," +
       "\"" + (modified ? "YES" : "") + "\",";
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getFather() {
+    return father;
+  }
+
+  public String getMother() {
+    return mother;
+  }
+
+  public String getOther() {
+    return other;
+  }
+
+  public String getHusband() {
+    return husband;
+  }
+
+  public String getHouse() {
+    return house;
+  }
+
+  public int getAge() {
+    return age;
+  }
+
+  public String getVoterID() {
+    return voterID;
+  }
+
+  public int getSerialNumber() {
+    return serialNumber;
   }
 
   /*public String extractVoterID(String str) {

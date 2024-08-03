@@ -8,12 +8,12 @@ import java.util.List;
 public class ExcelGenerator {
 
   // name of generated csv
-  final String CSV_LOCATION = "Voters_" + VoterDataExtraction.CONSTITUENCY_WARD + "_" ;
+  final String CSV_LOCATION = "Voters_" + Constants.CONSTITUENCY_WARD + "_" ;
 
   public void write(List<Person> allPersons) throws IOException {
     FileWriter writer = null;
     try {
-      String fileName = VoterDataExtraction.BASE
+      String fileName = Constants.CSV_FOLDER_PATH
         + File.separator
         + CSV_LOCATION
         + (System.currentTimeMillis()%1000000) + ".csv" ;

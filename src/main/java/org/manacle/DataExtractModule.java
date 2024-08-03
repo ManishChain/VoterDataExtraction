@@ -5,24 +5,12 @@ import java.util.List;
 
 public class DataExtractModule {
 
-  public static final String fieldName = "NAME";
-  public static final String fieldFather = "FATHER";
-  public static final String fieldMother = "MOTHER";
-  public static final String fieldOther = "OTHER";
-  public static final String fieldHusband = "HUSBAND";
-  public static final String fieldHouse = "HOUSE NUMBER";
-  public static final String fieldAge = "AGE";
-  public static final String fieldGender = "GENDER";
-  public static final String fieldSeparator = "MALE";
-  public static final String fieldExtra1 = "AVAILABLE";
-  public static final String fieldExtra2 = "PHOTO";
-
   public List<Person> start(String data, String otherInfo) {
     //System.out.println(">> " + data);
     //remove waster characters
     String dataToProcess = removeInvalidWordsAndCharacters(data.toUpperCase());
     //System.out.println(">> " + dataToProcess);
-    String[] persons = dataToProcess.split(fieldSeparator);
+    String[] persons = dataToProcess.split(Constants.fieldSeparator);
     //System.out.println("Got persons " + persons.length);
     //for(String temp: persons) System.out.println(" >> " + temp);
     //System.out.println("Got Names " + dataToProcess.split("NAME").length);
@@ -36,8 +24,8 @@ public class DataExtractModule {
     //String latestVoterID = null;
     StringBuilder buff = new StringBuilder();
     for(String str : persons) {
-      Person person = new Person(constituency, ward);
-      int index = str.indexOf(fieldName);
+      Person person = new Person(constituency, ward, "");
+      int index = str.indexOf(Constants.fieldName);
       int nextIndex = -1;
       boolean father = false, mother = false, other = false, husband = false;
       //System.out.println("   >> index=" + index  + "  :" + str);
@@ -53,19 +41,19 @@ public class DataExtractModule {
         } else {
           lastPersonVoterIDWasSet = false;
         }*/
-        nextIndex = str.indexOf(fieldFather, index);
+        nextIndex = str.indexOf(Constants.fieldFather, index);
         if(nextIndex>0) {
           person.setName(str.substring(index, nextIndex)); father = true; index = nextIndex;
         } else {
-          nextIndex = str.indexOf(fieldMother, index);
+          nextIndex = str.indexOf(Constants.fieldMother, index);
           if (nextIndex > 0) {
             person.setName(str.substring(index, nextIndex)); mother = true; index = nextIndex;
           } else {
-            nextIndex = str.indexOf(fieldOther, index);
+            nextIndex = str.indexOf(Constants.fieldOther, index);
             if (nextIndex > 0) {
               person.setName(str.substring(index, nextIndex)); other = true; index = nextIndex;
             } else {
-              nextIndex = str.indexOf(fieldHusband, index);
+              nextIndex = str.indexOf(Constants.fieldHusband, index);
               if(nextIndex>0) {
                 person.setName(str.substring(index, nextIndex)); husband = true; index = nextIndex;
               } else {
@@ -74,27 +62,27 @@ public class DataExtractModule {
             }
           }
         }
-        nextIndex = str.indexOf(fieldHouse, index);
+        nextIndex = str.indexOf(Constants.fieldHouse, index);
         if(nextIndex>0) {
           if (father) person.setFather(str.substring(index, nextIndex));
           if (mother) person.setMother(str.substring(index, nextIndex));
           if (other) person.setOther(str.substring(index, nextIndex));
           if (husband) person.setHusband(str.substring(index, nextIndex));
           index = nextIndex;
-          nextIndex = str.indexOf(fieldAge, index);
+          nextIndex = str.indexOf(Constants.fieldAge, index);
           if(nextIndex>0) {
             person.setHouse(str.substring(index, nextIndex));
             index = nextIndex;
-            nextIndex = str.indexOf(fieldGender, index);
+            nextIndex = str.indexOf(Constants.fieldGender, index);
             // System.err.println(" HERE " + str);
             if(nextIndex>0) {
               person.setAge(str.substring(index, nextIndex));
             }
             if (str.endsWith("FE")) {
               //System.err.println(" Female found " + str);
-              person.setGender(Person.FEMALE);
+              person.setGender(Constants.FEMALE);
             } else {
-              person.setGender(Person.MALE);
+              person.setGender(Constants.MALE);
             }
           } else {
             System.err.println("Error in extracting age");
@@ -152,8 +140,8 @@ public class DataExtractModule {
   private String removeInvalidWordsAndCharacters(String data) {
     // System.out.println(data);
     data = data
-      .replaceAll(fieldExtra1, " ")
-      .replaceAll(fieldExtra2, " ");
+      .replaceAll(Constants.fieldExtra1, " ")
+      .replaceAll(Constants.fieldExtra2, " ");
       //.replaceAll(":", "");
     return data.trim();
   }
