@@ -9,12 +9,12 @@ public class Communicator {
     return result==0;
   }
 
-  public static String get(String query){
-    return JOptionPane.showInputDialog(query);
+  public static String get(String query, String title){
+    return JOptionPane.showInputDialog(null, query, title, JOptionPane.PLAIN_MESSAGE);
   }
 
   public static void showNotice(String msg) {
-    System.out.println("\n@@@ NOTICE @@@  " + msg);
+    // System.out.println("\n@@@ NOTICE @@@  " + msg);
     JOptionPane.showMessageDialog(null,msg,"NOTICE", JOptionPane.PLAIN_MESSAGE);
   }
 
@@ -24,7 +24,7 @@ public class Communicator {
   }
 
   public static void showWarning(String msg) {
-    System.out.println("\n@@@ WARNING @@@ " + msg);
+    // System.out.println("\n@@@ WARNING @@@ " + msg);
     JOptionPane.showMessageDialog(null,msg,"WARNING", JOptionPane.WARNING_MESSAGE);
   }
 

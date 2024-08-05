@@ -7,15 +7,18 @@ import java.util.List;
 
 public class ExcelGenerator {
 
-  // name of generated csv
-  final String CSV_LOCATION = "Voters_" + Constants.CONSTITUENCY_WARD + "_" ;
+  private final String CONSTITUENCY_WARD;
 
-  public void write(List<Person> allPersons) throws IOException {
+  public ExcelGenerator(String cw) {
+    CONSTITUENCY_WARD = cw;
+  }
+
+  public String write(List<Person> allPersons) throws IOException {
     FileWriter writer = null;
     try {
       String fileName = Constants.CSV_FOLDER_PATH
         + File.separator
-        + CSV_LOCATION
+        + "Voters_" + CONSTITUENCY_WARD + "_"
         + (System.currentTimeMillis()%1000000) + ".csv" ;
       writer = new FileWriter(fileName);
       writer.write(Person.getHeader());
@@ -24,11 +27,13 @@ public class ExcelGenerator {
         writer.write(person.toString());
         writer.write("\n");
       }
+      return fileName;
     } catch (Exception e) {
       System.err.println("Error in creating CSV file");
     } finally {
       writer.close();
     }
+    return null;
   }
 
 }
