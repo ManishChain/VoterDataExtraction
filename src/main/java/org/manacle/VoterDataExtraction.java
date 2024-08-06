@@ -138,10 +138,12 @@ public class VoterDataExtraction {
         }
       }
       // for all persons create excel sheet
-      System.out.println("\n\nTotal Voters Extracted : " + allPersons.size());
+      System.out.println("Total Voters Extracted : " + allPersons.size());
       // System.out.println(allPersons);
       try {
-        System.out.println("\n\nProgram terminated successfully. Please check generated EXCEL sheet " + new ExcelGenerator(CONSTITUENCY_WARD).write(allPersons));
+        String csvFile = new ExcelGenerator(CONSTITUENCY_WARD).write(allPersons) ;
+        System.out.println("Program terminated successfully. Opening generated EXCEL sheet " + csvFile);
+        openCSVFile(csvFile);
       } catch (Exception e) {
         System.err.println("Error " + e.getMessage());
       }
@@ -149,6 +151,24 @@ public class VoterDataExtraction {
       System.err.println("Error " + e.getMessage());
     }
     System.exit(0);
+  }
+
+  private static void openCSVFile(String csvFile) {
+    String[] command = { "open", csvFile };
+    // System.out.println(Arrays.toString(command));
+    Runtime run = Runtime.getRuntime();
+    try {
+      Process process = Runtime.getRuntime().exec(command);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      StringBuilder data = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        data.append(line);
+      }
+      reader.close();
+      // System.out.println(data);
+    } catch(Exception e) {
+      System.err.println("Error opening CSV File: " + e.getMessage());    }
   }
 
   private static String getConstituencyAndWard(String dataFolderPath) {
