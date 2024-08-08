@@ -93,7 +93,7 @@ public class DataExtractModule {
         //System.out.println(person);
         allPersons.add(person);
       } else {
-        System.out.println("Misc: " + str);
+        //System.out.println("Misc: " + str);
         buff.append(str.trim());
         //allPersons.get(allPersons.size()-1).setVoterID(str.trim());
         //lastPersonVoterIDWasSet = true;

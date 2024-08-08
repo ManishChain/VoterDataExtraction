@@ -99,11 +99,11 @@ public class Person {
   }
 
   public String getGender() {
-    return switch (gender) {
-      case Constants.MALE -> "MALE";
-      case Constants.FEMALE -> "FEMALE";
-      default -> "-";
-    };
+    switch (gender) {
+      case Constants.MALE : return "MALE";
+      case Constants.FEMALE: return "FEMALE";
+      default : return "-";
+    }
   }
 
   public void setVoterID(String voterID) {
@@ -115,10 +115,11 @@ public class Person {
 
   public boolean setSerialNumber(String serialNumber) {
     try {
+      if(serialNumber==null || serialNumber.trim().isEmpty()) return false;
       this.serialNumber = onlyDigits(serialNumber);
       return true;
     } catch (Exception e) {
-      System.err.println("Error in serial number " + serialNumber + "  " + e.getMessage());
+      System.err.println("Error in serial number " + serialNumber + "  " + e.getLocalizedMessage());
     }
     return false;
   }
@@ -132,7 +133,7 @@ public class Person {
       this.serialExtension = value;
     }
     } catch (Exception e) {
-      System.err.println("Error in serial extension " + serialExtension + "  " + e.getMessage());
+      System.err.println("Error in serial extension " + serialExtension + "  " + e.getLocalizedMessage());
     }
   }
 

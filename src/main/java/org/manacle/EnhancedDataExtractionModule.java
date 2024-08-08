@@ -1,7 +1,11 @@
 package org.manacle;
 
+import com.sun.deploy.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EnhancedDataExtractionModule {
 
@@ -61,18 +65,65 @@ public class EnhancedDataExtractionModule {
       // System.out.println("Skipping " + str);
     }
     else if (person.getSerialNumber() == 0) {
-      int index = str.indexOf(" ");
-      if(index>0){
-        // it contains voter ID also
-        person.setSerialNumber(str.substring(0,index));
-        person.setVoterID(str.substring(index));
+      String[] arr = str.split(" ");
+      int len = arr.length;
+      if(len==1) {
+        if(arr[0].length()==10) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[0]);
+        } else if(arr[0].length()>=3 && containsAlphabets(arr[0].substring(0,3))) { // initial 3 chars are alphabets
+          person.setVoterID(arr[0]);
+        } else {
+          person.setSerialNumber(arr[0]);
+        }
+      } else if (len==2) {
+        if((arr[0].length()+arr[1].length())==10) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[0]+arr[1]);
+        } else if(containsAlphabets(arr[0])) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[0]+arr[1]);
+        } else {
+          try {
+            person.setSerialNumber(String.valueOf(Integer.parseInt(arr[0])));
+            person.setVoterID(arr[1]);
+          } catch (Exception e) {
+            person.setVoterID(arr[0]+arr[1]);
+          }
+        }
+      } else if (len>=3) {
+        if((arr[0].length()+arr[1].length())==10) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[0]+arr[1]);
+          person.setSerialNumber(arr[2]);
+        } else if(containsAlphabets(arr[0])) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[0]+arr[1]);
+          person.setSerialNumber(arr[2]);
+        } else {
+          try {
+            person.setSerialNumber(String.valueOf(Integer.parseInt(arr[0])));
+            person.setVoterID(arr[1]+arr[2]);
+          } catch (Exception e) {
+            System.err.println(" Error parsing " + str + " in [" + imageName + " " + personIndex + "]  " + e.getMessage());
+          }
+        }
       } else {
         person.setSerialNumber(str);
       }
     } else if (person.getVoterID() == null) person.setVoterID(str);
     else {
-      System.out.println(personIndex + "   " + str);
+      if(!str.contains(" ")) { // might be part of father or other name
+        if(person.getFather()!=null) person.setFather(person.getFather()+" "+str);
+        else if(person.getMother()!=null) person.setMother(person.getMother()+" "+str);
+        else if(person.getHusband()!=null) person.setHusband(person.getHusband()+" "+str);
+        else  System.err.println(" Error parsing " + str + " in [" + imageName + " " + personIndex + "]  ");
+      } else {
+        System.err.println(" Not parsing " + str + " in [" + imageName + " " + personIndex + "]  ");
+      }
     }
+  }
+
+  Pattern pattern = Pattern.compile("[a-zA-Z]+");
+
+  private boolean containsAlphabets(String str) {
+    Matcher matcher = pattern.matcher(str);
+    return matcher.matches();
   }
 }
 

@@ -41,17 +41,32 @@ public class VoterDataExtraction {
     return frame;
   }
 
+  static boolean linuxOrMac = true;
+
   public static void main(String[] args) {
+    PrintStream psOutput = null, psErr = null;
+    // set output into file
+    try { // Create a FileOutputStream to write to a file
+      // FileOutputStream fosOutput = new FileOutputStream("output.txt");
+      FileOutputStream fosErr = new FileOutputStream("err.txt");
+      // Create a PrintStream that wraps the FileOutputStream
+      // psOutput = new PrintStream(fosOutput);
+      psErr = new PrintStream(fosErr);
+      // Redirect System.out to the PrintStream
+      //System.setOut(psOutput);
+      System.setErr(psErr);
+    } catch (FileNotFoundException e) {
+      System.err.println("Error: Output file not found");
+    }
+
     String os = System.getProperty("os.name") ;
     // System.out.println(os);
     if(!os.toLowerCase().contains("mac")) {
-      Communicator.showError("This program can run only on MAC");
-      System.exit(0);
+      linuxOrMac = false;
     }
     Communicator.showNotice("Starting program...\n\nPlease select folder containing images");
 
     try {
-
       File dataFolder = null;
 
       JFileChooser fc = new JFileChooser("", FileSystemView.getFileSystemView());
@@ -149,12 +164,17 @@ public class VoterDataExtraction {
       }
     } catch (Exception e){
       System.err.println("Error " + e.getMessage());
+    } finally {
+      // Close the PrintStream to release resources
+      //psOutput.close();
+      assert psErr != null;
+      psErr.close();;
     }
     System.exit(0);
   }
 
   private static void openCSVFile(String csvFile) {
-    String[] command = { "open", csvFile };
+    String[] command = { linuxOrMac?"open":"excel", csvFile };
     // System.out.println(Arrays.toString(command));
     Runtime run = Runtime.getRuntime();
     try {
@@ -270,7 +290,7 @@ public class VoterDataExtraction {
 
   private void generateTextFileByScanningImage(String imageInfo){
     try {
-      String[] command = { "tesseract", imageInfo, getOutputTextFileName(imageInfo, false) };
+      String[] command = { "tesseract", imageInfo, getOutputTextFileName(imageInfo, false), "--psm", "11" };
       Process process = Runtime.getRuntime().exec(command);
       BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       StringBuilder data = new StringBuilder();
@@ -294,6 +314,7 @@ public class VoterDataExtraction {
       return name;
     }
   }
+
 
 
 }

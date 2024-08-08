@@ -19,7 +19,7 @@ public class Communicator {
   }
 
   public static void showError(String error){
-     System.out.println("\n@@@ ERROR @@@ " + error);
+     System.err.println("\n@@@ ERROR @@@ " + error);
      JOptionPane.showMessageDialog(null,error,"ERROR", JOptionPane.ERROR_MESSAGE);
   }
 
