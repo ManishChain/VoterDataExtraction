@@ -1,5 +1,8 @@
 package org.manacle;
 
+import org.manacle.entity.Info;
+import org.manacle.entity.Person;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -7,10 +10,10 @@ import java.util.List;
 
 public class ExcelGenerator {
 
-  private final String CONSTITUENCY_WARD;
+  Info constituencyInfo ;
 
-  public ExcelGenerator(String cw) {
-    CONSTITUENCY_WARD = cw;
+  public ExcelGenerator(Info cw) {
+    this.constituencyInfo = cw;
   }
 
   public String write(List<Person> allPersons) throws IOException {
@@ -18,7 +21,7 @@ public class ExcelGenerator {
     try {
       String fileName = Constants.CSV_FOLDER_PATH
         + File.separator
-        + "Voters_" + CONSTITUENCY_WARD + "_"
+        + "Voters_" + constituencyInfo.getConstituency() + "_" + constituencyInfo.getWard() + "_" + constituencyInfo.getPart() + "_"
         + (System.currentTimeMillis()%1000000) + ".csv" ;
       writer = new FileWriter(fileName);
       writer.write(Person.getHeader());
@@ -26,14 +29,29 @@ public class ExcelGenerator {
       for(Person person : allPersons) {
         writer.write(person.toString());
         writer.write("\n");
+        updateGenderStats(person.getGender());
+        int serialNumber = person.getSerialNumber();
+        if(!(serialNumber>=constituencyInfo.getSerialStart() && serialNumber<=constituencyInfo.getSerialEnd())) {
+          System.err.println("Serial number not in valid range " + serialNumber + "  " + person.getShortInfo());
+        }
       }
       return fileName;
     } catch (Exception e) {
       System.err.println("Error in creating CSV file");
     } finally {
+      assert writer != null;
       writer.close();
     }
     return null;
+  }
+
+
+  private void updateGenderStats(String gender) {
+    if(gender==null || gender.isEmpty()) return;
+    gender = gender.toLowerCase();
+    if(gender.startsWith("ma")) constituencyInfo.addMale();
+    else if(gender.startsWith("fe")) constituencyInfo.addFemale();
+    else constituencyInfo.addOther();
   }
 
 }

@@ -1,6 +1,8 @@
 package org.manacle;
 
 import org.apache.commons.io.FileUtils;
+import org.manacle.entity.Info;
+import org.manacle.entity.Person;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -45,30 +47,9 @@ public class VoterDataExtraction {
 
   public static void main(String[] args) {
     PrintStream psOutput = null, psErr = null;
-    // set output into file
-    try { // Create a FileOutputStream to write to a file
-      // FileOutputStream fosOutput = new FileOutputStream("output.txt");
-      FileOutputStream fosErr = new FileOutputStream("err.txt");
-      // Create a PrintStream that wraps the FileOutputStream
-      // psOutput = new PrintStream(fosOutput);
-      psErr = new PrintStream(fosErr);
-      // Redirect System.out to the PrintStream
-      //System.setOut(psOutput);
-      System.setErr(psErr);
-    } catch (FileNotFoundException e) {
-      System.err.println("Error: Output file not found");
-    }
-
-    String os = System.getProperty("os.name") ;
-    // System.out.println(os);
-    if(!os.toLowerCase().contains("mac")) {
-      linuxOrMac = false;
-    }
-    Communicator.showNotice("Starting program...\n\nPlease select folder containing images");
-
+    JOptionPane.showMessageDialog(null,"Starting program...\n\nPlease select folder containing images","NOTICE", JOptionPane.PLAIN_MESSAGE);
     try {
       File dataFolder = null;
-
       JFileChooser fc = new JFileChooser("", FileSystemView.getFileSystemView());
       fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
       Frame frame = getFrame();
@@ -76,39 +57,55 @@ public class VoterDataExtraction {
       if (option == JFileChooser.APPROVE_OPTION) {
         dataFolder = fc.getSelectedFile();
       } else {
-        Communicator.showError("No folder selected. Please try again");
+        JOptionPane.showMessageDialog(null,"No folder selected. Please try again","ERROR", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
       }
-
       if (!dataFolder.exists() || Objects.requireNonNull(dataFolder.listFiles()).length == 0) {
-        Communicator.showError("Data Folder not found or empty .... " + dataFolder.getAbsolutePath());
+        JOptionPane.showMessageDialog(null,"Data Folder not found or empty .... " + dataFolder.getAbsolutePath(),"ERROR", JOptionPane.ERROR_MESSAGE);
         System.exit(0);
+      }
+      Info constituencyInfo = new Info(dataFolder.getAbsolutePath() + File.separator + "params.txt");
+      try { // Create a FileOutputStream to write to a file
+        // FileOutputStream fosOutput = new FileOutputStream("output.txt");
+        FileOutputStream fosErr = new FileOutputStream(dataFolder.getAbsolutePath() + File.separator + "err.txt");
+        // Create a PrintStream that wraps the FileOutputStream
+        // psOutput = new PrintStream(fosOutput);
+        psErr = new PrintStream(fosErr);
+        // Redirect System.out to the PrintStream
+        //System.setOut(psOutput);
+        System.setErr(psErr);
+      } catch (FileNotFoundException e) {
+        System.err.println("Error: Output file not found");
+      }
+
+      String os = System.getProperty("os.name") ;
+      // System.out.println(os);
+      if(!os.toLowerCase().contains("mac")) {
+        linuxOrMac = false;
       }
 
       Constants.IMAGE_FOLDER_PATH = dataFolder + File.separator + GENERATED + File.separator + "images";
       Constants.OUTPUT_FOLDER_PATH = dataFolder + File.separator + GENERATED + File.separator + "output";
       Constants.CSV_FOLDER_PATH = dataFolder + File.separator + GENERATED + File.separator + "csv";
 
-      String CONSTITUENCY_WARD = getConstituencyAndWard(dataFolder.getAbsolutePath());
-
       File imageFolder = new File(Constants.IMAGE_FOLDER_PATH);
       if (!imageFolder.exists()) {
         if (!imageFolder.mkdirs()) {
-          Communicator.showError("Image folder not found or created .... " + imageFolder.getAbsolutePath());
+          JOptionPane.showMessageDialog(null,"Image folder not found or created .... " + imageFolder.getAbsolutePath(),"ERROR", JOptionPane.ERROR_MESSAGE);
           System.exit(0);
         }
       }
       File outputFolder = new File(Constants.OUTPUT_FOLDER_PATH);
       if (!outputFolder.exists()) {
         if (!outputFolder.mkdirs()) {
-          Communicator.showError("Output folder not found or created .... " + outputFolder.getAbsolutePath());
+          JOptionPane.showMessageDialog(null,"Output folder not found or created .... " + outputFolder.getAbsolutePath(),"ERROR", JOptionPane.ERROR_MESSAGE);
           System.exit(0);
         }
       }
       File csvFolder = new File(Constants.CSV_FOLDER_PATH);
       if (!csvFolder.exists()) {
         if (!csvFolder.mkdirs()) {
-          Communicator.showError("CSV folder not found or created .... " + outputFolder.getAbsolutePath());
+          JOptionPane.showMessageDialog(null,"CSV folder not found or created .... " + outputFolder.getAbsolutePath(),"ERROR", JOptionPane.ERROR_MESSAGE);
           System.exit(0);
         }
       }
@@ -123,10 +120,13 @@ public class VoterDataExtraction {
       VoterDataExtraction voterDataExtraction = new VoterDataExtraction();
       List<String> allImagesInfo = new VoterDataExtraction().moveAllImagesFromDataFolderIntoImageFolder(dataFolder);
 
-      if (Communicator.ask("Generate", "Do you want to generate TEXT files from images ?")) {
+      System.out.println("Total images are " + allImagesInfo.size());
+
+      int answer = JOptionPane.showConfirmDialog(null, "Do you want to generate TEXT files from images ?", "Generate", JOptionPane.YES_NO_OPTION);
+      if (answer==0) {
         for (String imageInfo : allImagesInfo) {
           voterDataExtraction.generateTextFileByScanningImage(imageInfo);
-          System.out.println("TEXT GENERATION DONE: " + imageInfo);
+          System.out.println( " " + (--count) + ": extracted data from " + imageInfo);
         }
       } else {
         System.err.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE\n\n");
@@ -140,35 +140,42 @@ public class VoterDataExtraction {
         if (datafile.exists()) {
           String data = voterDataExtraction.getData(datafile);
           // System.out.println("---> Processing : " + imageInfo.getPath());
-          List<Person> persons;
-          if (Constants.USE_ENHANCED_LOGIC) {
-            //System.out.println(".........");
-            persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), CONSTITUENCY_WARD, imageInfo);
-          } else {
-            persons = new DataExtractModule().start(data, CONSTITUENCY_WARD);
-          }
+          assert data != null;
+          List<Person> persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), imageInfo, constituencyInfo);
           if (persons != null && !persons.isEmpty()) allPersons.addAll(persons);
         } else {
           System.err.println("File not exists " + datafile.getAbsolutePath());
         }
       }
-      // for all persons create excel sheet
-      System.out.println("Total Voters Extracted : " + allPersons.size());
-      // System.out.println(allPersons);
-      try {
-        String csvFile = new ExcelGenerator(CONSTITUENCY_WARD).write(allPersons) ;
-        System.out.println("Program terminated successfully. Opening generated EXCEL sheet " + csvFile);
-        openCSVFile(csvFile);
-      } catch (Exception e) {
-        System.err.println("Error " + e.getMessage());
+      if(!allPersons.isEmpty()) {
+        try {
+          String csvFile = new ExcelGenerator(constituencyInfo).write(allPersons);
+          System.out.println("Program terminated successfully. Opening generated EXCEL sheet " + csvFile);
+          openCSVFile(csvFile);
+        } catch (Exception e) {
+          System.err.println("Error opening file " + e.getMessage());
+        }
+        // for all persons create excel sheet
+        int extractedVoters = allPersons.size();
+        int expectedVoters = constituencyInfo.getTotal();
+        int missed = expectedVoters - extractedVoters;
+        if (missed > 0) {
+          System.out.println("Voters  expected=" + expectedVoters + "  extracted=" + extractedVoters + "  missed=" + missed);
+        } else {
+          System.out.println("All Voters Extracted " + extractedVoters);
+        }
+        System.out.println("Total males " + constituencyInfo.getMales() + " found " + constituencyInfo.getCountMales());
+        System.out.println("Total females " + constituencyInfo.getFemales() + " found " + constituencyInfo.getCountFemales());
+        System.out.println("Total others " + constituencyInfo.getOthers() + " found " + constituencyInfo.getCountOthers());
+      } else {
+        System.err.println("All persons empty");
       }
     } catch (Exception e){
-      System.err.println("Error " + e.getMessage());
+      System.err.println("Error major " + e.getMessage());
     } finally {
       // Close the PrintStream to release resources
-      //psOutput.close();
-      assert psErr != null;
-      psErr.close();;
+      //if(psOutput!=null) psOutput.close();
+      if(psErr!=null) psErr.close();;
     }
     System.exit(0);
   }
@@ -189,19 +196,6 @@ public class VoterDataExtraction {
       // System.out.println(data);
     } catch(Exception e) {
       System.err.println("Error opening CSV File: " + e.getMessage());    }
-  }
-
-  private static String getConstituencyAndWard(String dataFolderPath) {
-    int index = dataFolderPath.lastIndexOf(File.separator);
-    int ward = 0 ;
-    if(index>0){
-      int index2 = dataFolderPath.indexOf("-",index);
-      if(index2>0){
-        try { ward = Integer.parseInt(dataFolderPath.substring(index2+1)); } catch (Exception ignored) { }
-        return dataFolderPath.substring(index+1,index2) + "-" + ward;
-      }
-    }
-    return "UNKNOWN-0";
   }
 
   /*private static boolean getValuesFromProperties() {

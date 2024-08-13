@@ -1,6 +1,10 @@
-package org.manacle;
+package org.manacle.entity;
+
+import org.manacle.Constants;
 
 public class Person {
+
+  private final Info constituencyInfo;
 
   private final String imageName;
   private String name;
@@ -10,52 +14,46 @@ public class Person {
   private String husband;
   private String house;
   private int age;
-  private int gender;
-  private String genderLabel;
+  private String gender;
   private String voterID;
   private int serialNumber;
-  private int serialExtension = 0;
-  private final String constituency;
-  private int ward = 0;
-  private final boolean modified = false;
 
-  public Person(String constituency, int ward, String imageName) {
-    this.constituency = constituency;
-    this.ward = ward;
+  public Person(Info constituencyInfo, String imageName) {
+    this.constituencyInfo = constituencyInfo;
     this.imageName = imageName;
   }
 
   public void setName(String name) {
     try { name = name.substring(name.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No : in name");
+      System.err.println("No delimiter : found in name " + name + " in " + imageName);
     }
     this.name = name.replaceAll(Constants.fieldName,  "").trim();
   }
 
   public void setFather(String father) {
     try { father = father.substring(father.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No : in father");
+      System.err.println("No delimiter : found in father " + father + " in " + imageName);
     }
     this.father =  father.replaceAll(Constants.fieldFather,  "").trim();
   }
 
   public void setMother(String mother) {
     try { mother = mother.substring(mother.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No : in mother");
+      System.err.println("No delimiter : found in mother " + mother + " in " + imageName);
     }
     this.mother = mother.replaceAll(Constants.fieldMother,  "").trim();
   }
 
   public void setOther(String other) {
     try { other = other.substring(other.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No : in other");
+      System.err.println("No delimiter : found in other " + other + " in " + imageName);
     }
     this.other = other.replaceAll(Constants.fieldOther,  "").trim();;
   }
 
   public void setHusband(String husband) {
     try { husband = husband.substring(husband.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No : in husband");
+      System.err.println("No delimiter : found in husband " + husband + " in " + imageName);
     }
     this.husband = husband.replaceAll(Constants.fieldHusband,  "").trim();;
   }
@@ -65,7 +63,7 @@ public class Person {
       house = house.substring(house.indexOf(":")+1);
       house = house.replace(Constants.fieldExtra2, "").trim();
     } catch (Exception e) {
-      System.err.println("No : in house");
+      System.err.println("No delimiter : found in house " + house + " in " + imageName);
     }
     this.house = house.replaceAll(Constants.fieldHouse,  "").trim();;
   }
@@ -75,65 +73,39 @@ public class Person {
     try {
       this.age = onlyDigits(str);
     } catch (Exception e) {
-      System.err.println("Error in age " + age + " " + e.getMessage());
+      System.err.println("Error in age " + age + " in " + imageName + " " + e.getMessage());
     }
     // might be possible that GENDER info is also inside this
-    if (str.contains(Constants.fieldGender) && getGenderLabel() == null) setGenderLabel(str);
-    if (str.contains(Constants.fieldGender1) && getGenderLabel() == null) setGenderLabel(str);
+    if (str.contains(Constants.fieldGender) && getGender() == null) setGender(str);
+    if (str.contains(Constants.fieldGender1) && getGender() == null) setGender(str);
   }
 
-  public void setGenderLabel(String str) {
+  public void setGender(String str) {
     int index = str.indexOf(Constants.fieldGender);
     if(index<0) index = str.indexOf(Constants.fieldGender1);
     if(index>0) {
-      this.genderLabel = onlyAlphabets(str.substring(index+Constants.fieldGender.length()));
+      this.gender = onlyAlphabets(str.substring(index+Constants.fieldGender.length()));
     }
-  }
-
-  public String getGenderLabel() {
-    return genderLabel;
-  }
-
-  public void setGender(int gender) {
-    this.gender = gender;
   }
 
   public String getGender() {
-    switch (gender) {
-      case Constants.MALE : return "MALE";
-      case Constants.FEMALE: return "FEMALE";
-      default : return "-";
-    }
+    return gender;
   }
 
   public void setVoterID(String voterID) {
     this.voterID = onlyAlphanumeric(voterID);
     if(this.voterID.length()!=10) {
-      System.err.println("Invalid VoterID : " + this.voterID);
+      System.err.println("Invalid VoterID : " + this.voterID + " in " + imageName + " ");
+
     }
   }
 
-  public boolean setSerialNumber(String serialNumber) {
+  public void setSerialNumber(String serialNumber) {
     try {
-      if(serialNumber==null || serialNumber.trim().isEmpty()) return false;
+      if(serialNumber==null || serialNumber.trim().isEmpty()) return;
       this.serialNumber = onlyDigits(serialNumber);
-      return true;
     } catch (Exception e) {
-      System.err.println("Error in serial number " + serialNumber + "  " + e.getLocalizedMessage());
-    }
-    return false;
-  }
-
-  public void setSerialExtension(String serialExtension) {
-    try {
-    int value = onlyDigits(serialExtension);
-    if(value>100){
-      this.serialNumber = value; // most probably it is serial number
-    } else {
-      this.serialExtension = value;
-    }
-    } catch (Exception e) {
-      System.err.println("Error in serial extension " + serialExtension + "  " + e.getLocalizedMessage());
+      System.err.println("Error in serial number " + serialNumber + " in " + imageName + " " + e.getLocalizedMessage());
     }
   }
 
@@ -153,13 +125,14 @@ public class Person {
     return str.replaceAll("[^a-z.A-Z0-9]", "").trim();
   }
 
-  String onlyAlphanumericWithSpaces(String str) {
+  /*String onlyAlphanumericWithSpaces(String str) {
     return str.replaceAll("[^a-z.A-Z0-9 ]", "").trim();
-  }
+  }*/
 
   public static String getHeader(){
     return "\"" + "CONSTITUENCY" + "\"," +
       "\"" + "WARD" + "\"," +
+      "\"" + "PART" + "\"," +
       "\"" + "IMAGE" + "\"," +
       "\"" + "NAME" + "\"," +
       "\"" + "FATHER" + "\"," +
@@ -177,8 +150,7 @@ public class Person {
 
   @Override
   public String toString() {
-    return "\"" + (constituency != null ? constituency : "") + "\"," +
-      "\"" + (ward > 0 ? ward : "") + "\"," +
+    return (constituencyInfo != null ? constituencyInfo : "") +
       "\"" + (imageName != null ? imageName.replace(Constants.IMAGE_FOLDER_PATH,"") : "") + "\"," +
       "\"" + (name != null ? onlyAlphabetsWithSpaces(name) : "") + "\"," +
       "\"" + (father != null ? onlyAlphabetsWithSpaces(father) : "") + "\"," +
@@ -187,11 +159,9 @@ public class Person {
       "\"" + (husband != null ? onlyAlphabetsWithSpaces(husband) : "") + "\"," +
       "\"" + (house != null ? house : "") + "\"," +
       "\"" + (age > 0 ? age : "") + "\"," +
-      "\"" + (Constants.USE_ENHANCED_LOGIC?getGenderLabel():getGender()) + "\"," +
+      "\"" + getGender() + "\"," +
       "\"" + (voterID != null ? voterID : "") + "\"," +
-      "\"" + (serialNumber > 0 ? serialNumber : "") + "\"," +
-      "\"" + (serialExtension > 0 ? serialExtension : "") + "\"," +
-      "\"" + (modified ? "YES" : "") + "\",";
+      "\"" + (serialNumber > 0 ? serialNumber : "") + "\"," ;
   }
 
   public String getName() {
@@ -228,6 +198,10 @@ public class Person {
 
   public int getSerialNumber() {
     return serialNumber;
+  }
+
+  public String getShortInfo() {
+    return voterID + " " + name + " in " + imageName;
   }
 
   /*public String extractVoterID(String str) {

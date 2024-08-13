@@ -1,6 +1,7 @@
 package org.manacle;
 
-import com.sun.deploy.util.StringUtils;
+import org.manacle.entity.Info;
+import org.manacle.entity.Person;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,17 +12,12 @@ public class EnhancedDataExtractionModule {
 
   int totalPersons = 0 ;
   List<Person> persons;
-  String constituency;
-  int ward = 0;
   String imageName;
+  Info constituencyInfo;
 
-  public List<Person> start(String data, String otherInfo, String imageName) {
+  public List<Person> start(String data, String imageName, Info constituencyInfo) {
     this.imageName = imageName;
-    String[] areaInfo = otherInfo.split("-");
-    constituency = areaInfo[0];
-    try { ward = Integer.parseInt(areaInfo[1]); } catch (Exception e) {
-      System.err.println("Error in extracting ward " + otherInfo);
-    }
+    this.constituencyInfo = constituencyInfo;
     String[] rawPersonsData = data.split(Constants.fieldExtra1);
     // System.out.println("Expected persons: " + rawPersonsData.length);
     persons = new ArrayList<>(rawPersonsData.length);
@@ -37,11 +33,14 @@ public class EnhancedDataExtractionModule {
       // System.out.println(" " + totalPersons + ": " + rawPerson);
       String[] array = rawPerson.split(Constants.DELIMITER);
       for (String str : array) {
-        if (!str.isEmpty()) process(totalPersons, str);
+        try {
+          if (!str.isEmpty()) process(totalPersons, str);
+        } catch (Exception e){
+          System.err.println("Error in person " + e.getMessage());
+        }
       }
       totalPersons++ ;
     }
-    //System.out.println(">>>  Persons added: " + totalPersons);
     return persons;
   }
 
@@ -49,7 +48,7 @@ public class EnhancedDataExtractionModule {
     // System.out.println("Index " + personIndex + ": " + str);
     Person person;
     if(persons.size()==personIndex) {
-      persons.add(new Person(constituency, ward, imageName));
+      persons.add(new Person(constituencyInfo, imageName));
     }
     person = persons.get(personIndex);
     if (str.contains(Constants.fieldName) && person.getName()==null) person.setName(str);
@@ -59,8 +58,8 @@ public class EnhancedDataExtractionModule {
     else if (str.contains(Constants.fieldHusband) && person.getHusband()==null) person.setHusband(str);
     else if (str.contains(Constants.fieldHouse) && person.getHouse()==null) person.setHouse(str);
     else if (str.contains(Constants.fieldAge) && person.getAge()==0) person.setAge(str);
-    else if (str.contains(Constants.fieldGender) && person.getGenderLabel() == null) person.setGenderLabel(str);
-    else if (str.contains(Constants.fieldGender1) && person.getGenderLabel() == null) person.setGenderLabel(str);
+    else if (str.contains(Constants.fieldGender) && person.getGender() == null) person.setGender(str);
+    else if (str.contains(Constants.fieldGender1) && person.getGender() == null) person.setGender(str);
     else if (str.contains(Constants.fieldExtra2)) {
       // System.out.println("Skipping " + str);
     }
@@ -89,7 +88,11 @@ public class EnhancedDataExtractionModule {
           }
         }
       } else if (len>=3) {
-        if((arr[0].length()+arr[1].length())==10) { // this could be voter ID instead of serial number
+        if(arr[2].length()==10) { // this could be voter ID instead of serial number
+          person.setVoterID(arr[2]);
+          person.setSerialNumber(arr[0]);
+          System.err.println("Ignoring " + arr[1] + " there is additional box adjacent to serial number " + str + " in " + imageName);
+        } else if((arr[0].length()+arr[1].length())==10) { // this could be voter ID instead of serial number
           person.setVoterID(arr[0]+arr[1]);
           person.setSerialNumber(arr[2]);
         } else if(containsAlphabets(arr[0])) { // this could be voter ID instead of serial number
