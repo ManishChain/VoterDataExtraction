@@ -122,7 +122,20 @@ public class VoterDataExtraction {
 
       System.out.println("Total images are " + allImagesInfo.size());
 
-      int answer = JOptionPane.showConfirmDialog(null, "Do you want to generate TEXT files from images ?", "Generate", JOptionPane.YES_NO_OPTION);
+      // cut single page image into three
+      int answer = JOptionPane.showConfirmDialog(null, "Are all \"Single Page\" images need to be cut in 3 parts ?", "Cut Image Into Three Parts", JOptionPane.YES_NO_OPTION);
+      if (answer==0) {
+        List<String> allCutImagesInfo = new ArrayList<>();
+        ImageCutter imageCutter = new ImageCutter();
+        for (String imageInfo : allImagesInfo) {
+          allCutImagesInfo.addAll(imageCutter.cutImageIntoParts(imageInfo));
+        }
+        allImagesInfo = allCutImagesInfo; // this is very important as new images must be used
+      } else {
+        System.err.println("------->> IMAGE CUTTING PROCESS SKIPPED AS NOT SINGLE PAGE IMAGES \n\n");
+      }
+      // extract text from images
+      answer = JOptionPane.showConfirmDialog(null, "Do you want to generate TEXT files from images ?", "Generate", JOptionPane.YES_NO_OPTION);
       if (answer==0) {
         for (String imageInfo : allImagesInfo) {
           voterDataExtraction.generateTextFileByScanningImage(imageInfo);
@@ -140,8 +153,9 @@ public class VoterDataExtraction {
         if (datafile.exists()) {
           String data = voterDataExtraction.getData(datafile);
           // System.out.println("---> Processing : " + imageInfo.getPath());
+          int imageIndex = getImageIndex(datafile.getAbsolutePath());
           assert data != null;
-          List<Person> persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), imageInfo, constituencyInfo);
+          List<Person> persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), constituencyInfo, imageIndex);
           if (persons != null && !persons.isEmpty()) allPersons.addAll(persons);
         } else {
           System.err.println("File not exists " + datafile.getAbsolutePath());
@@ -151,7 +165,10 @@ public class VoterDataExtraction {
         try {
           String csvFile = new ExcelGenerator(constituencyInfo).write(allPersons);
           System.out.println("Program terminated successfully. Opening generated EXCEL sheet " + csvFile);
-          openCSVFile(csvFile);
+          answer = JOptionPane.showConfirmDialog(null, "Do you want to open generated EXCEL file ?", "OPEN", JOptionPane.YES_NO_OPTION);
+          if (answer==0) {
+            openCSVFile(csvFile);
+          }
         } catch (Exception e) {
           System.err.println("Error opening file " + e.getMessage());
         }
@@ -167,6 +184,13 @@ public class VoterDataExtraction {
         System.out.println("Total males " + constituencyInfo.getMales() + " found " + constituencyInfo.getCountMales());
         System.out.println("Total females " + constituencyInfo.getFemales() + " found " + constituencyInfo.getCountFemales());
         System.out.println("Total others " + constituencyInfo.getOthers() + " found " + constituencyInfo.getCountOthers());
+        System.err.println("\n\nList of missing serial numbers");
+        Map<Integer, Boolean> map = constituencyInfo.getSerialNumberStats();
+        int count = 0 ;
+        for(Integer serialNumber : map.keySet()) {
+          if(!map.get(serialNumber)) { count++; System.err.println(" " + serialNumber); }
+        }
+        System.err.println("Total missing : " + count + ", check duplicates");
       } else {
         System.err.println("All persons empty");
       }
@@ -175,9 +199,25 @@ public class VoterDataExtraction {
     } finally {
       // Close the PrintStream to release resources
       //if(psOutput!=null) psOutput.close();
-      if(psErr!=null) psErr.close();;
+      if(psErr!=null) psErr.close();
     }
     System.exit(0);
+  }
+
+  private static int getImageIndex(String path) {
+    //File copied = new File(Constants.IMAGE_FOLDER_PATH + File.separator + (count++) + "_" + filename + ".png");
+    try {
+      int index = path.lastIndexOf(File.separator);
+      if (index >= 0) {
+        int index2 = path.indexOf("_", index);
+        if (index2 >= 0) {
+          return Integer.parseInt(path.substring(index + 1, index2));
+        }
+      }
+    } catch (Exception e){
+      System.err.println("Error extracting image index " + path);
+    }
+    return 0;
   }
 
   private static void openCSVFile(String csvFile) {

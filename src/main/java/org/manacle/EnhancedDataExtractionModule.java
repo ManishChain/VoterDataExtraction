@@ -12,11 +12,9 @@ public class EnhancedDataExtractionModule {
 
   int totalPersons = 0 ;
   List<Person> persons;
-  String imageName;
   Info constituencyInfo;
 
-  public List<Person> start(String data, String imageName, Info constituencyInfo) {
-    this.imageName = imageName;
+  public List<Person> start(String data, Info constituencyInfo, int imageIndex) {
     this.constituencyInfo = constituencyInfo;
     String[] rawPersonsData = data.split(Constants.fieldExtra1);
     // System.out.println("Expected persons: " + rawPersonsData.length);
@@ -34,7 +32,7 @@ public class EnhancedDataExtractionModule {
       String[] array = rawPerson.split(Constants.DELIMITER);
       for (String str : array) {
         try {
-          if (!str.isEmpty()) process(totalPersons, str);
+          if (!str.isEmpty()) process(totalPersons, str, imageIndex);
         } catch (Exception e){
           System.err.println("Error in person " + e.getMessage());
         }
@@ -44,14 +42,15 @@ public class EnhancedDataExtractionModule {
     return persons;
   }
 
-  private void process(int personIndex, String str) {
+  private void process(int personIndex, String str, int imageIndex) {
     // System.out.println("Index " + personIndex + ": " + str);
     Person person;
     if(persons.size()==personIndex) {
-      persons.add(new Person(constituencyInfo, imageName));
+      persons.add(new Person(constituencyInfo, imageIndex));
     }
     person = persons.get(personIndex);
-    if (str.contains(Constants.fieldName) && person.getName()==null) person.setName(str);
+    if (str.contains(Constants.fieldName) && person.getName()==null) person.setName(str,0);
+    else if (str.contains(Constants.fieldName1) && person.getName()==null) person.setName(str,1);
     else if (str.contains(Constants.fieldFather) && person.getFather()==null) person.setFather(str);
     else if (str.contains(Constants.fieldMother) && person.getMother()==null) person.setMother(str);
     else if (str.contains(Constants.fieldOther) && person.getOther()==null) person.setOther(str);
@@ -91,7 +90,7 @@ public class EnhancedDataExtractionModule {
         if(arr[2].length()==10) { // this could be voter ID instead of serial number
           person.setVoterID(arr[2]);
           person.setSerialNumber(arr[0]);
-          System.err.println("Ignoring " + arr[1] + " there is additional box adjacent to serial number " + str + " in " + imageName);
+          System.err.println("Ignoring " + arr[1] + " there is additional box adjacent to serial number " + str + " in " + person.getShortInfo());
         } else if((arr[0].length()+arr[1].length())==10) { // this could be voter ID instead of serial number
           person.setVoterID(arr[0]+arr[1]);
           person.setSerialNumber(arr[2]);
@@ -103,7 +102,7 @@ public class EnhancedDataExtractionModule {
             person.setSerialNumber(String.valueOf(Integer.parseInt(arr[0])));
             person.setVoterID(arr[1]+arr[2]);
           } catch (Exception e) {
-            System.err.println(" Error parsing " + str + " in [" + imageName + " " + personIndex + "]  " + e.getMessage());
+            System.err.println("Parsing-error-01 [" + str + "] in " + person.getShortInfo() + "]  " + e.getMessage());
           }
         }
       } else {
@@ -115,9 +114,9 @@ public class EnhancedDataExtractionModule {
         if(person.getFather()!=null) person.setFather(person.getFather()+" "+str);
         else if(person.getMother()!=null) person.setMother(person.getMother()+" "+str);
         else if(person.getHusband()!=null) person.setHusband(person.getHusband()+" "+str);
-        else  System.err.println(" Error parsing " + str + " in [" + imageName + " " + personIndex + "]  ");
+        else  System.err.println("Parsing-error-02 [" + str + "] in " + person.getShortInfo() + "]  ");
       } else {
-        System.err.println(" Not parsing " + str + " in [" + imageName + " " + personIndex + "]  ");
+        System.err.println("Parsing-error-03 [" + str + "] in " + person.getShortInfo() + "]  ");
       }
     }
   }

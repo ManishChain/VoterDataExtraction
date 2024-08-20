@@ -23,4 +23,6 @@ public class Constants {
   public static final String fieldExtra1 = "AVAILABLE";
   public static final String fieldExtra2 = "PHOTO";
 
+  public static final String fieldName1 = "LAME ";
+
 }

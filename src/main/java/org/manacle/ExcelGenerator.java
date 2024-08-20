@@ -32,7 +32,7 @@ public class ExcelGenerator {
         updateGenderStats(person.getGender());
         int serialNumber = person.getSerialNumber();
         if(!(serialNumber>=constituencyInfo.getSerialStart() && serialNumber<=constituencyInfo.getSerialEnd())) {
-          System.err.println("Serial number not in valid range " + serialNumber + "  " + person.getShortInfo());
+          System.err.println("\nSerial number not in valid range " + serialNumber + " in " + person.getShortInfo());
         }
       }
       return fileName;

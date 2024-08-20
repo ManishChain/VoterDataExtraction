@@ -6,7 +6,7 @@ public class Person {
 
   private final Info constituencyInfo;
 
-  private final String imageName;
+  private final int imageIndex;
   private String name;
   private String father;
   private String mother;
@@ -18,42 +18,52 @@ public class Person {
   private String voterID;
   private int serialNumber;
 
-  public Person(Info constituencyInfo, String imageName) {
+  public Person(Info constituencyInfo, int imageIndex) {
     this.constituencyInfo = constituencyInfo;
-    this.imageName = imageName;
+    this.imageIndex = imageIndex;
   }
 
-  public void setName(String name) {
-    try { name = name.substring(name.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No delimiter : found in name " + name + " in " + imageName);
+  public void setName(String name, int signal) {
+    int index = name.indexOf(":");
+    if(index>=0) {
+      name = name.substring(index+1).trim();
+    } else {
+      index = name.indexOf("?");
+      if(index>=0){
+        name = name.substring(index+1).trim();
+      }
     }
-    this.name = name.replaceAll(Constants.fieldName,  "").trim();
+    if(signal==1) {
+      this.name = name.replaceAll(Constants.fieldName1, "").trim();
+    } else {
+      this.name = name.replaceAll(Constants.fieldName, "").trim();
+    }
   }
 
   public void setFather(String father) {
     try { father = father.substring(father.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No delimiter : found in father " + father + " in " + imageName);
+      System.err.println("No delimiter : found in father [" + father + "] in " + getShortInfo());
     }
     this.father =  father.replaceAll(Constants.fieldFather,  "").trim();
   }
 
   public void setMother(String mother) {
     try { mother = mother.substring(mother.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No delimiter : found in mother " + mother + " in " + imageName);
+      System.err.println("No delimiter : found in mother [" + mother + "] in " + getShortInfo());
     }
     this.mother = mother.replaceAll(Constants.fieldMother,  "").trim();
   }
 
   public void setOther(String other) {
     try { other = other.substring(other.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No delimiter : found in other " + other + " in " + imageName);
+      System.err.println("No delimiter : found in other [" + other + "] in " + getShortInfo());
     }
     this.other = other.replaceAll(Constants.fieldOther,  "").trim();;
   }
 
   public void setHusband(String husband) {
     try { husband = husband.substring(husband.indexOf(":")+1).trim(); } catch (Exception e) {
-      System.err.println("No delimiter : found in husband " + husband + " in " + imageName);
+      System.err.println("No delimiter : found in husband [" + husband + "] in " + getShortInfo());
     }
     this.husband = husband.replaceAll(Constants.fieldHusband,  "").trim();;
   }
@@ -63,7 +73,7 @@ public class Person {
       house = house.substring(house.indexOf(":")+1);
       house = house.replace(Constants.fieldExtra2, "").trim();
     } catch (Exception e) {
-      System.err.println("No delimiter : found in house " + house + " in " + imageName);
+      System.err.println("No delimiter : found in house [" + house + "] in  " + getShortInfo());
     }
     this.house = house.replaceAll(Constants.fieldHouse,  "").trim();;
   }
@@ -73,7 +83,8 @@ public class Person {
     try {
       this.age = onlyDigits(str);
     } catch (Exception e) {
-      System.err.println("Error in age " + age + " in " + imageName + " " + e.getMessage());
+      this.age = 0;
+      System.err.println("Error in age [" + str + "] in " + getShortInfo() + " " + e.getMessage());
     }
     // might be possible that GENDER info is also inside this
     if (str.contains(Constants.fieldGender) && getGender() == null) setGender(str);
@@ -95,8 +106,8 @@ public class Person {
   public void setVoterID(String voterID) {
     this.voterID = onlyAlphanumeric(voterID);
     if(this.voterID.length()!=10) {
-      System.err.println("Invalid VoterID : " + this.voterID + " in " + imageName + " ");
-
+      this.voterID = null ;
+      System.err.println(" ---> Ignoring VoterID [" + voterID + "] in " + getShortInfo() + " ");
     }
   }
 
@@ -104,10 +115,15 @@ public class Person {
     try {
       if(serialNumber==null || serialNumber.trim().isEmpty()) return;
       this.serialNumber = onlyDigits(serialNumber);
+      if(!constituencyInfo.updateSerialNumberStats(this.serialNumber)){
+        System.err.println("Duplicate serial number found [" + this.serialNumber + "] in " + getShortInfo());
+      }
     } catch (Exception e) {
-      System.err.println("Error in serial number " + serialNumber + " in " + imageName + " " + e.getLocalizedMessage());
+      this.serialNumber = 0;
+      System.err.println("----> Ignoring serial number [" + serialNumber + "] in " + getShortInfo() + " " + e.getLocalizedMessage());
     }
   }
+
 
   private int onlyDigits(String str) {
     return Integer.parseInt(str.replaceAll("[^0-9.]", ""));
@@ -151,7 +167,7 @@ public class Person {
   @Override
   public String toString() {
     return (constituencyInfo != null ? constituencyInfo : "") +
-      "\"" + (imageName != null ? imageName.replace(Constants.IMAGE_FOLDER_PATH,"") : "") + "\"," +
+      "\"" + (imageIndex>0 ? imageIndex : "") + "\"," +
       "\"" + (name != null ? onlyAlphabetsWithSpaces(name) : "") + "\"," +
       "\"" + (father != null ? onlyAlphabetsWithSpaces(father) : "") + "\"," +
       "\"" + (mother != null ? onlyAlphabetsWithSpaces(mother) : "") + "\"," +
@@ -201,7 +217,7 @@ public class Person {
   }
 
   public String getShortInfo() {
-    return voterID + " " + name + " in " + imageName;
+    return " VoterID=" + voterID + " Name=" + name + " \t\t N=" + imageIndex;
   }
 
   /*public String extractVoterID(String str) {

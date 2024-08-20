@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class Info {
@@ -34,6 +36,7 @@ TOTAL=1418
   private int countMales = 0;
   private int countFemales = 0;
   private int countOthers = 0;
+  private Map<Integer,Boolean> serialNumberStats;
 
   public Info(String paramsFilePath) {
     try {
@@ -78,6 +81,8 @@ TOTAL=1418
         }
         serialEnd = Integer.parseInt(temp.toString());
 
+        generateHolderForSerialNumberStats();
+
         temp = prop.get("MALE"); //
         if(temp==null) {
           System.err.println("MALE not defined in properties file");
@@ -112,6 +117,25 @@ TOTAL=1418
     } catch (Exception e) {
       System.err.println("Error reading params file " +e.getMessage());
     }
+  }
+
+  private void generateHolderForSerialNumberStats() {
+    serialNumberStats = new HashMap<Integer,Boolean>();
+    for(int i=serialStart; i<=serialEnd; i++){
+      serialNumberStats.put(i, false);
+    }
+  }
+  public boolean updateSerialNumberStats(int serialNumber) {
+    boolean b = serialNumberStats.get(serialNumber);
+    if(b){
+      return false;
+    } else {
+      serialNumberStats.put(serialNumber, true);
+      return true;
+    }
+  }
+  public Map<Integer, Boolean> getSerialNumberStats(){
+    return  serialNumberStats;
   }
 
   @Override
