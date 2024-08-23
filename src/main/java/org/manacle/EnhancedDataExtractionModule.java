@@ -14,7 +14,7 @@ public class EnhancedDataExtractionModule {
   List<Person> persons;
   Info constituencyInfo;
 
-  public List<Person> start(String data, Info constituencyInfo, int imageIndex) {
+  public List<Person> start(String data, Info constituencyInfo, int[] pageInfo) {
     this.constituencyInfo = constituencyInfo;
     String[] rawPersonsData = data.split(Constants.fieldExtra1);
     // System.out.println("Expected persons: " + rawPersonsData.length);
@@ -32,7 +32,7 @@ public class EnhancedDataExtractionModule {
       String[] array = rawPerson.split(Constants.DELIMITER);
       for (String str : array) {
         try {
-          if (!str.isEmpty()) process(totalPersons, str, imageIndex);
+          if (!str.isEmpty()) process(totalPersons, str, pageInfo);
         } catch (Exception e){
           System.err.println("Error in person " + e.getMessage());
         }
@@ -42,11 +42,11 @@ public class EnhancedDataExtractionModule {
     return persons;
   }
 
-  private void process(int personIndex, String str, int imageIndex) {
+  private void process(int personIndex, String str, int[] pageInfo) {
     // System.out.println("Index " + personIndex + ": " + str);
     Person person;
     if(persons.size()==personIndex) {
-      persons.add(new Person(constituencyInfo, imageIndex));
+      persons.add(new Person(constituencyInfo, pageInfo[0], pageInfo[1], pageInfo[2]));
     }
     person = persons.get(personIndex);
     if (str.contains(Constants.fieldName) && person.getName()==null) person.setName(str,0);
@@ -119,6 +119,7 @@ public class EnhancedDataExtractionModule {
         System.err.println("Parsing-error-03 [" + str + "] in " + person.getShortInfo() + "]  ");
       }
     }
+
   }
 
   Pattern pattern = Pattern.compile("[a-zA-Z]+");

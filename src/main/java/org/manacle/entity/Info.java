@@ -1,7 +1,5 @@
 package org.manacle.entity;
 
-import org.manacle.Constants;
-
 import javax.swing.*;
 import java.io.File;
 import java.io.InputStream;
@@ -37,6 +35,7 @@ TOTAL=1418
   private int countFemales = 0;
   private int countOthers = 0;
   private Map<Integer,Boolean> serialNumberStats;
+  private boolean singlePageImage = false;
 
   public Info(String paramsFilePath) {
     try {
@@ -111,6 +110,12 @@ TOTAL=1418
         }
         total = Integer.parseInt(temp.toString());
 
+        temp = prop.get("SINGLE_PAGE_IMAGE"); //
+        if(temp==null) {
+          singlePageImage = false;
+        } else {
+          singlePageImage = temp.toString().equalsIgnoreCase("TRUE");
+        }
       } else {
         throw new Exception("Params file not found");
       }
@@ -202,6 +207,10 @@ TOTAL=1418
 
   public int getCountOthers() {
     return countOthers;
+  }
+
+  public boolean isSinglePageImage() {
+    return singlePageImage;
   }
 }
 

@@ -17,10 +17,20 @@ public class Person {
   private String gender;
   private String voterID;
   private int serialNumber;
+  private int expectedSerialNumber;
 
-  public Person(Info constituencyInfo, int imageIndex) {
+  private static int currentIndex = 0 ;
+
+  public Person(Info constituencyInfo, int imageIndex, int pageNumber, int columnNumber) {
     this.constituencyInfo = constituencyInfo;
     this.imageIndex = imageIndex;
+    if(pageNumber>0) {
+      // set extension which can be used as serial number
+      expectedSerialNumber = ((pageNumber-1)*30) + (columnNumber+1) + (currentIndex*3) ;
+      // System.out.println("expectedSerialNumber = " + expectedSerialNumber + "  >>  " + pageNumber + "  " + columnNumber + "  " + currentIndex);
+      currentIndex++;
+      if(currentIndex==10) currentIndex=0; // reset
+    }
   }
 
   public void setName(String name, int signal) {
@@ -177,7 +187,8 @@ public class Person {
       "\"" + (age > 0 ? age : "") + "\"," +
       "\"" + getGender() + "\"," +
       "\"" + (voterID != null ? voterID : "") + "\"," +
-      "\"" + (serialNumber > 0 ? serialNumber : "") + "\"," ;
+      "\"" + (serialNumber > 0 ? serialNumber : "") + "\"," +
+      "\"" + expectedSerialNumber + "\"," ;
   }
 
   public String getName() {

@@ -31,7 +31,7 @@ public class ExcelGenerator {
         writer.write("\n");
         updateGenderStats(person.getGender());
         int serialNumber = person.getSerialNumber();
-        if(!(serialNumber>=constituencyInfo.getSerialStart() && serialNumber<=constituencyInfo.getSerialEnd())) {
+        if(serialNumber>0 && !(serialNumber>=constituencyInfo.getSerialStart() && serialNumber<=constituencyInfo.getSerialEnd())) {
           System.err.println("\nSerial number not in valid range " + serialNumber + " in " + person.getShortInfo());
         }
       }

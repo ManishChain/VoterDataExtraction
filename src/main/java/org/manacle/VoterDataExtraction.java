@@ -123,26 +123,29 @@ public class VoterDataExtraction {
       System.out.println("Total images are " + allImagesInfo.size());
 
       // cut single page image into three
-      int answer = JOptionPane.showConfirmDialog(null, "Are all \"Single Page\" images need to be cut in 3 parts ?", "Cut Image Into Three Parts", JOptionPane.YES_NO_OPTION);
-      if (answer==0) {
+      if (constituencyInfo.isSinglePageImage()) {
         List<String> allCutImagesInfo = new ArrayList<>();
         ImageCutter imageCutter = new ImageCutter();
         for (String imageInfo : allImagesInfo) {
           allCutImagesInfo.addAll(imageCutter.cutImageIntoParts(imageInfo));
         }
         allImagesInfo = allCutImagesInfo; // this is very important as new images must be used
+        count*=3;
       } else {
-        System.err.println("------->> IMAGE CUTTING PROCESS SKIPPED AS NOT SINGLE PAGE IMAGES \n\n");
+        System.out.println("------->> IMAGE CUTTING PROCESS SKIPPED AS NOT SINGLE PAGE IMAGES \n\n");
       }
       // extract text from images
-      answer = JOptionPane.showConfirmDialog(null, "Do you want to generate TEXT files from images ?", "Generate", JOptionPane.YES_NO_OPTION);
+      int answer = outputFolder.listFiles().length ;
+      if(answer>0) {
+        answer = JOptionPane.showConfirmDialog(null, "Do you want to generate TEXT files from images ?", "Generate", JOptionPane.YES_NO_OPTION);
+      }
       if (answer==0) {
         for (String imageInfo : allImagesInfo) {
           voterDataExtraction.generateTextFileByScanningImage(imageInfo);
           System.out.println( " " + (--count) + ": extracted data from " + imageInfo);
         }
       } else {
-        System.err.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE\n\n");
+        System.out.println("------->> TEXT GENERATION SKIPPED AS ALREADY DONE\n\n");
       }
 
       // process extracted data
@@ -153,9 +156,16 @@ public class VoterDataExtraction {
         if (datafile.exists()) {
           String data = voterDataExtraction.getData(datafile);
           // System.out.println("---> Processing : " + imageInfo.getPath());
-          int imageIndex = getImageIndex(datafile.getAbsolutePath());
+          String imagePath = datafile.getAbsolutePath();
+          int[] pageInfo = new int[3];
+          if(constituencyInfo.isSinglePageImage()) {
+            pageInfo = getImageIndexPageNumberAndColumnNumber(imagePath);
+          } else {
+            pageInfo[0] = getOnlyImageIndex(imagePath);
+          }
           assert data != null;
-          List<Person> persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), constituencyInfo, imageIndex);
+          assert pageInfo != null;
+          List<Person> persons = new EnhancedDataExtractionModule().start(data.toUpperCase(), constituencyInfo, pageInfo);
           if (persons != null && !persons.isEmpty()) allPersons.addAll(persons);
         } else {
           System.err.println("File not exists " + datafile.getAbsolutePath());
@@ -184,13 +194,13 @@ public class VoterDataExtraction {
         System.out.println("Total males " + constituencyInfo.getMales() + " found " + constituencyInfo.getCountMales());
         System.out.println("Total females " + constituencyInfo.getFemales() + " found " + constituencyInfo.getCountFemales());
         System.out.println("Total others " + constituencyInfo.getOthers() + " found " + constituencyInfo.getCountOthers());
-        System.err.println("\n\nList of missing serial numbers");
+        /*System.err.println("\n\nList of missing serial numbers");
         Map<Integer, Boolean> map = constituencyInfo.getSerialNumberStats();
         int count = 0 ;
         for(Integer serialNumber : map.keySet()) {
           if(!map.get(serialNumber)) { count++; System.err.println(" " + serialNumber); }
         }
-        System.err.println("Total missing : " + count + ", check duplicates");
+        System.err.println("Total missing : " + count + ", check duplicates");*/
       } else {
         System.err.println("All persons empty");
       }
@@ -204,7 +214,28 @@ public class VoterDataExtraction {
     System.exit(0);
   }
 
-  private static int getImageIndex(String path) {
+  private static int[] getImageIndexPageNumberAndColumnNumber(String path) {
+    //File copied = new File(Constants.IMAGE_FOLDER_PATH + File.separator + (count++) + "_" + filename + ".png");
+    int[] pageInfo = new int[3];
+    try {
+      int index = path.lastIndexOf(File.separator);
+      if (index >= 0) {
+        int index2 = path.indexOf(".", index);
+        path = path.substring(index+1, index2);
+        String[] arr = path.split("_");
+        pageInfo[0] = Integer.parseInt(arr[0]); // imageIndex
+        pageInfo[1] = Integer.parseInt(arr[1]); // page number
+        pageInfo[2] = Integer.parseInt(arr[2]); // column number
+        // System.out.println(Arrays.toString(pageInfo));
+        return pageInfo;
+      }
+    } catch (Exception e){
+      System.err.println("Error extracting image index " + path);
+    }
+    return null;
+  }
+
+  private static int getOnlyImageIndex(String path) {
     //File copied = new File(Constants.IMAGE_FOLDER_PATH + File.separator + (count++) + "_" + filename + ".png");
     try {
       int index = path.lastIndexOf(File.separator);
@@ -219,6 +250,7 @@ public class VoterDataExtraction {
     }
     return 0;
   }
+
 
   private static void openCSVFile(String csvFile) {
     String[] command = { linuxOrMac?"open":"excel", csvFile };
